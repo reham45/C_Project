@@ -1,9 +1,9 @@
 #ifndef _CLINIC_MANAGEMENT_SYSTEM_H_
 #define _CLINIC_MANAGEMENT_SYSTEM_H_
 
-#include"STD_DATA.h"
+#define MAX_Tries 3
 #define PASSWORD 1234
-#define NoOfSlots 6
+#define NoOfSlots 5
 #define MAX_NAME_LENGTH 50
 #define MAX_GENDER_LENGTH 10
 
@@ -40,8 +40,8 @@ typedef struct
 }patient;
 
 patient *head=NULL;
-u32 availableSlots=6;
-u32 arr[NoOfSlots] = {1,2,3,4,5,6};
+u32 availableSlots=5;
+u32 arr[NoOfSlots] = {1,2,3,4,5};
 
 
 #endif

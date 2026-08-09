@@ -10,13 +10,19 @@ int main(){
 }
 /*Function for mode selection */
 void select_mode(void){
-	u32 Mode;
+	u32 Mode,check_input;
 	printf("                   WELCOME TO THE CLINIC\n");
 
 	printf("For Admin click 1:\n");
 	printf("For User click 2:\n");
-	scanf("         %d",&Mode);
-	//to handle mode selection
+	check_input=scanf("         %d",&Mode);
+	//to avoid user unbehavior (system crashing)
+	if(check_input!=1)
+	{
+		while (getchar() != '\n');   
+        printf("Error: Invalid input! Please enter numbers only.\n");
+	}	
+	//to handle mode selection	
 	switch(Mode)
 	{
 	case 1:
@@ -29,34 +35,42 @@ void select_mode(void){
 		printf("               Invalid Choice\n");
 		select_mode();//recursive call for invalid choice
 	}
-    }
+		
+    
+}
 
 /*Function for check on Admin password */
 void check_pass(void){
-	u32 pass;
-
-	printf("Please,Enter the password:\n");
-	scanf("         %d",&pass);
-	//check for initial password
-	if (pass==PASSWORD)
-    {
-        Admin_mode();
-		return;
-    }
+	u32 password,check_input;
 	//give the user additional attempts
-	for(u32 i=0;i<2;i++)
+	printf("Please, Enter The password: ");
+	for(u32 i=0;i < MAX_Tries;i++)
 	{
-		printf("Wrong password.Please Try Again: ");
-        scanf("%d", &pass);
+		//To force the user to enter the integar number for the password
+       check_input=scanf("%d", &password);
+	   if (check_input != 1) 
+        {
+            while (getchar() != '\n'); 
+            
+            printf("Error: Invalid input! Please enter numbers only.\nTry again: ");
+            i--; 
+            continue; 
+        }
 
-		if(pass==PASSWORD)
+		if(password==PASSWORD)
 		{
 			Admin_mode();
 			return;
 	    }
+		if(i<(MAX_Tries-1))
+		{
+			printf("Wrong password.Please Try Again: ");
+		}
+		
 	}
 	//if all attempts failed
     printf("Incorrect password, Sorry No more tries ");
+	
 	select_mode();//recursive call for Incorrect password
 }
 
@@ -70,8 +84,10 @@ void Admin_mode(void){
 	    printf("4- Cancel reservation\n");
 	    printf("5- return the previous list\n");
 	    scanf("%d",&choice_num);
-
+		
+        
 	   //to handle the Admin choices
+	
 	   switch(choice_num)
 	   {
 	   case 1:
@@ -92,60 +108,94 @@ void Admin_mode(void){
 	   default:
 		  printf("        Invalid Choice. Please Choose from the choice numbers\n");
 	   }
+	
+	   
 	}
   }
-
+  
 /*Function for add new Patient */
+
 void AddNewPatient(void){
 	u32 ID;
-	if(availableSlots)
+	patient *ptr1;
+	patient *ptr2;
+	if(availableSlots)//to sure there is any available slots
     {
 
 		/*Create new node containing the new Patient*/
-		patient* NewPatient=(patient*)malloc(sizeof(patient));
+		
+		patient *NewPatient=(patient*)malloc(sizeof(patient));
+		
 		/*Scanning the information*/
 		printf("                   The Patient Information\n");
         printf("Name:");
-        scanf("%s\n",NewPatient->name);
+        scanf("%s",NewPatient->name);
+		printf("\n");
         printf("Gender:");
-        scanf("%s\n",NewPatient->gender);
+        scanf("%s",NewPatient->gender);
+		printf("\n");
         printf("Age:");
-        scanf("%d\n",NewPatient->age);
+        scanf("%d",&NewPatient->age);
+		printf("\n");
         printf("ID:");
-        scanf("%d\n",NewPatient->ID);
-        /*Intitial value of the next of the New Patient node to NULL */
-	    NewPatient->next=NULL;
+        scanf("%d",&NewPatient->ID);
+		printf("\n");
+	    NewPatient->next=NULL;//will point to null (last element)
 
 	    if(head==NULL)
 		{
 			head=NewPatient;
+			printf("Patient added successfully!");
+			return;
 	    }
         else
 	   {
-		   patient *ptr1,*ptr2;
-	       ptr1=ptr2=head;
+		   /*can use them again*/
+	       ptr1=head;
+		   ptr2=head;
+		   
 		   while(ptr2!=NULL)
 		   {
-			   if(NewPatient->ID == ptr2->ID)
+			   if(ptr2->ID==NewPatient->ID)
 			   {
 				   printf("This ID already exists.\n"
                            "Please Enter New ID : ");
                    scanf("%d",&NewPatient->ID);
-                   ptr2 = head;
+				   ptr2=head;
+				   ptr1=head;
+				   continue;
                 }
-                ptr1=ptr2;
-                ptr2=ptr2->next;
+				if(ptr2->next==NULL)
+				{
+					break;
+				}
+                				
             }
-            ptr1->next=NewPatient;
+			ptr1=NewPatient;
+			head=ptr1;
+            printf("Patient added successfully!\n");
         }
+		
     }
+	else
+	{
+		printf("Sorry,There is any available slots.");
+	}
 }
 
 
 /*Function to edit Patient informatiom*/
+
 void EditRecord(void){
 	u32 ID;
 	u32 found=0;
+	/*check head*/
+	
+	if(head==NULL)
+	{
+		printf("The list is empty! No records to edit.\n");
+        return;
+	}
 
 	patient *ptr=head;
 	
@@ -154,20 +204,23 @@ void EditRecord(void){
 	scanf("%d",&ID);
 	
 	
-	while(ptr->next!= NULL)
+	while(ptr!= NULL)
 	{
-		if(ID==ptr->ID)
+		if(ptr->ID==ID)
 		{
 			found=1;
 			printf("New Name:");
-			scanf("%s\n",&ptr->name);
+			scanf("%s",ptr->name);
+			printf("\n");
 			printf("New Gender:");
-			scanf("%s\n",&ptr->gender);
+			scanf("%s",ptr->gender);
+			printf("\n");
 		    printf("New Age:");
-			scanf("%d\n",&ptr->age);
+			scanf("%d",&ptr->age);
+			printf("\n");
 			break;
 	    }
-		ptr=ptr->next;
+		ptr->next;
 	}
 		
 	if(found==0)
@@ -176,20 +229,32 @@ void EditRecord(void){
 	}
    
     }
+	
 
 
 
 void ReserveSlot(void){
 	u32 ID;
-	struct patient *ptr=head;
+	u32 i=0;
+	u32 j=0;
+	patient *ptr=head;
+	/*if there is not available slots ,Exit*/
+	if(ptr==NULL)
+	{
+		printf("there is not any available slots!");
+		Admin_mode();
+		return;	
+	}
 	if(ptr!=NULL)
 	{
 		printf("Please,Enter the ID:");
-		scanf("%d\n",&ID);
+		scanf("%d",&ID);
+		printf("\n");
 		while(ptr!=NULL){
-			if(ID == ptr->ID)
+			if(ptr->ID==ID)
 			{
-				for(u32 i=1,j=1;i<=availableSlots,j<=availableSlots;i++,j++)
+				/*search on available slots*/
+				for(i=1;i<=NoOfSlots;i++,j++)
 				{
 					switch(arr[j])
 					{
@@ -202,22 +267,28 @@ void ReserveSlot(void){
 						case 3:
 						printf("3- From 3:00 PM To 3:30 PM \n");
                         break;
+						//breack time
 						case 4:
-						printf("4- From 3:30 PM To 4:00 PM \n");
+						printf("4- From 4:00 PM To 4:30 PM \n");
                         break;
 						case 5:
-						printf("5- From 4:00 PM To 4:30 PM \n");
-                        break;
-						case 6:
-						printf("6- From 4:30 PM To 5:00 PM \n");
+						printf("5- From 4:30 PM To 5:00 PM \n");
                         break;
 					}
-
 				}
+				/*select the slot and delete*/
+				printf("Please,Select the slot that you wanna reserve.");
+				scanf("%d",&ptr->slot);
+				arr[ptr->slot-1]=0;
+				availableSlots--;
+				return;
+				
 			}
 			else
 			{
-			ptr= ptr->next;
+			printf("The ID IS not exists!");
+			Admin_mode();
+			return;
 			}
 
 		}
@@ -229,8 +300,8 @@ void ReserveSlot(void){
 }
 
 void CancelReserve(void){
-	struct patient *ptr;
-    u32 ID;
+	u32 ID;
+	patient *ptr;
     ptr= head;
 
     if(ptr!= NULL)
@@ -248,7 +319,9 @@ void CancelReserve(void){
             }
             else
             {
-				ptr= ptr->next;
+				printf("The ID IS not exists!");
+				Admin_mode();
+				return;
             }
         }
 
@@ -256,7 +329,7 @@ void CancelReserve(void){
 	else
 	{
 		printf("There are no patients\n");
-
+		return;
     }
 }
 
@@ -269,8 +342,16 @@ void User_mode(void){
 	    printf("2- View Today Reservations \n");
 	    printf("3- return the previous list\n");
 	    scanf("%d",&choice_num);
+		//to save the system from crash
+		if(choice_num!=1)
+		{
+			while(getchar()=='\n');
+			printf("Error: Invalid input! Please enter numbers only.\n");
+			continue;
+		}
 
 	   //to handle the User choices
+	   
 	   switch(choice_num)
 	   {
 	   case 1:
@@ -289,19 +370,21 @@ void User_mode(void){
 
 
 }
-void ViewRecord(void){
 
-	patient *ptr;
+void ViewRecord(void){
     u32 ID;
+	patient *ptr;
     ptr= head;
     if(ptr!= NULL)
     {
         printf("Enter patient ID : ");
         scanf("%d\n",&ID);
         /*Make loop On all the nodes and print every patient informations */
+		
+		
         while(ptr!= NULL)
         {
-            if(ID == ptr->ID)
+            if(ptr->ID==ID)
             {
                 printf("Patient Name : %s\n",ptr->name);
                 printf("Patient Gender : %s\n",ptr->gender);
@@ -311,7 +394,8 @@ void ViewRecord(void){
             }
             else
             {
-                ptr=ptr->next;
+                printf("The ID IS not exists!");
+				User_mode();
             }
         }
     }
@@ -319,17 +403,16 @@ void ViewRecord(void){
 	{
 		printf("There are no patients \n");
 	}
-
-    }
+}
 
 
 void ViewReserve(void){
 	patient *ptr=head;
-    u32 slot;
     if(ptr!= NULL)
     {
         /* Print all the Reservations of all the patients */
-        printf("ID: reservation slot:\n");
+		
+        printf("All reservation slot:\n");
         while(ptr!= NULL)
         {
             switch(ptr->slot)
@@ -337,7 +420,6 @@ void ViewReserve(void){
             case 1:
                 printf("%d   2:00 PM : 2:30 PM.\n",ptr->ID);
                 break;
-
             case 2:
                 printf("%d   2:30 PM : 3:00 PM.\n",ptr->ID);
                 break;
@@ -345,21 +427,14 @@ void ViewReserve(void){
 			    printf("%d   3:00 PM : 3:30 PM.\n",ptr->ID);
                 break;
             case 4:
-                printf("%d   3:30 PM : 4:00 PM.\n",ptr->ID);
-                break;
-
-            case 5:
                 printf("%d   4:00 PM : 4:30 PM.\n",ptr->ID);
                 break;
-
-            case 6:
+            case 5:
                 printf("%d   4:30 PM : 5:00 PM.\n",ptr->ID);
                 break;
-
             default :
                 break;
             }
-            ptr=ptr->next;
         }
     }
 	else
